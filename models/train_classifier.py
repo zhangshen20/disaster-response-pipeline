@@ -1,24 +1,125 @@
 import sys
+from sqlalchemy import create_engine
+import pandas as pd
+import numpy as np
+import joblib
+
+from sklearn.model_selection import train_test_split, GridSearchCV
+from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer, TfidfTransformer
+from sklearn.multioutput import MultiOutputClassifier
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.metrics import hamming_loss, accuracy_score, confusion_matrix
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.pipeline import FeatureUnion, Pipeline
+from sklearn.metrics import classification_report
+
+import nltk
+from nltk.tokenize import word_tokenize
+from nltk.tokenize import sent_tokenize
+from nltk.corpus import stopwords
+from nltk import pos_tag, ne_chunk
+from nltk.stem.porter import PorterStemmer
+from nltk.stem.wordnet import WordNetLemmatizer
+nltk.download('stopwords')
+nltk.download('words')
+nltk.download('punkt')
+nltk.download('averaged_perceptron_tagger')
+nltk.download('maxent_ne_chunker')
+nltk.download('wordnet')
 
 
 def load_data(database_filepath):
-    pass
-
+    """Load dataset from sqlite DB to dataframe. Extract datasets and category names
+    
+    Args:
+        database_filepath: str. sqlite DB file path
+        
+    Return:
+        X: Input dataset
+        Y: Output dataset
+        category_names: names of categories
+    """
+    engine = create_engine('sqlite:///{}'.format(database_filepath))
+    df = pd.read_sql_table('MessageResponse', engine)
+    
+    X = df['message']
+    Y = df[df.columns[4:]]
+    
+    category_names = df.columns[4:]
+    
+    return X, Y, category_names
 
 def tokenize(text):
-    pass
-
+    """Tokenize text. Remove stop words. Lemmatize and stem words
+    
+    Args:
+        text: str. 
+    
+    Return:
+        A list containing processed text
+    """
+    words = word_tokenize(text.lower().strip())
+    
+    # Remove Stop Words
+    words = [w for w in words if w not in stopwords.words("english")]
+    
+    lemmed = [WordNetLemmatizer().lemmatize(w) for w in words]
+    lemmed = [WordNetLemmatizer().lemmatize(w, pos='v') for w in lemmed]
+    
+    stemmed = [PorterStemmer().stem(w) for w in lemmed]
+    
+    return stemmed
 
 def build_model():
-    pass
+    """Build ML Pipeline with Grid Search"""
+    pipeline = Pipeline([
+        ('vect' , CountVectorizer(tokenizer=tokenize)),
+        ('tfidf' , TfidfTransformer()),
+        ('clf' , MultiOutputClassifier(RandomForestClassifier()))
+        ])
 
+#     parameters = {
+#         'clf__estimator__n_estimators': [50, 100],
+#         'clf__estimator__min_samples_split': [2, 3, 4],
+#     }
+    parameters = {
+        'clf__estimator__min_samples_split': [2],
+    }
+    
+    model = GridSearchCV(pipeline, param_grid=parameters)
+    
+    return model
+    
+def evaluate_model(model, X_test, y_test, category_names):
+    """Evaluate model by applying test data and print out classification report
+    
+    Args:
+        model: model object.
+        X_test: array
+        y_test: test result dataframe
+        category_names: list. category names
+    Returns:
+        None
+    """
+    y_pred = model.predict(X_test)
 
-def evaluate_model(model, X_test, Y_test, category_names):
-    pass
+    for i, c in enumerate(y_test):
 
+        print("<*** Feature - '{}' ***>\n".format(category_names[i]))    
+        cr_y1 = classification_report(y_test.values[:,i],y_pred[:,i])    
+        print(cr_y1)    
+    
 
 def save_model(model, model_filepath):
-    pass
+    """Save model file to the given filepath
+    
+    Args
+        model: scikit-learn model. The fitted model
+        model_filepath: string. The file path where the model is saved to
+    Returns:
+        None
+    """
+    joblib.dump(model, model_filepath)
 
 
 def main():
