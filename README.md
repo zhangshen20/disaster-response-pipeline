@@ -19,7 +19,7 @@ This project aims to help emergency departments response disasters by quickly id
 
 ### File Description
 
-<code>
+<pre>
 app/
   |- data/
   | |- DisasterResponse.db  #SQLite DB file
@@ -36,4 +36,4 @@ app/
   |- utils.py # tokenize libs
 README.md
 requirements.txt # required python libs
-</code>
+</pre>
