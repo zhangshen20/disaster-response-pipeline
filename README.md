@@ -19,19 +19,19 @@ This project aims to help emergency departments response disasters by quickly id
 
 ### File Description
 
-- app/
-    - data/
-        DisasterResponse.db  #SQLite DB file
-        disaster_categories.csv #Raw category data
-        disaster_messages.csv #Raw message data
-        process_date.py # script to ETL raw data into SQLite DB
-    - models/
-        classifierV6.pkl # model file
-        train_classifier.py # ML Training script
-    - templates/
-        go.html # Query text page 
-        master.html # Main page
-    - run.py # Web entry script
-    - utils.py # tokenize libs
-- README.md
-- requirements.txt # required python libs
+app/
+  |- data/
+  | |- DisasterResponse.db  #SQLite DB file
+  | |- disaster_categories.csv #Raw category data
+  | |- disaster_messages.csv #Raw message data
+  | |- process_date.py # script to ETL raw data into SQLite DB
+  |- models/
+  | |- classifierV6.pkl # model file
+  | |- train_classifier.py # ML Training script
+  |- templates/
+  | |- go.html # Query text page 
+  | |- master.html # Main page
+  |- run.py # Web entry script
+  |- utils.py # tokenize libs
+README.md
+requirements.txt # required python libs
